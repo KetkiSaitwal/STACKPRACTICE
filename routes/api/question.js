@@ -78,4 +78,31 @@ router.post('/answers/:id', passport.authenticate( 'jwt',
     }
 )
 
+//type    -    POST
+//route   -    /api/questions/upvotes/:id
+//desc    -    route for submitting answers to questions, id belongs to the question
+//access  -    PRIVATE
+router.post('/upvotes/:id', passport.authenticate('jwt', 
+{session:false}),
+(req,res) => {
+    Profile.findOne( {user:req.user.id})
+        .then( profile => {
+            Question.findById(req.params.id)
+                .then( question => {
+                    if(question.upvotes.filter(upvote => upvote.user.toString() === req.user.id.toString()).length > 0){
+                        return res.status(400).json( {message: 'Already Upvoted'})
+                    }
+                    question.upvotes.unshift( {user: req.user.id})
+                    question 
+                        .save()
+                        .then(question => res.json(question))
+                        .catch(err => console.log(err));
+                })
+                .catch(err => console.log(err))
+        })
+        .catch(err => console.log(err));
+}
+
+)
+
 module.exports = router;
